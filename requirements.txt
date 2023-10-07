@@ -1,0 +1,12 @@
+bs4==0.0.1
+numpy==1.25.2
+requests==2.31.0
+torch==2.0.1
+torchvision==0.15.2
+tqdm==4.66.0
+wandb==0.15.8
+termcolor==2.3.0
+matplotlib~=3.7.2
+scikit-learn~=1.3.0
+quart
+websockify

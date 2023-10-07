@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<head>
+    <meta name="viewport" content="user-scalable=no">
+    <meta charset="UTF-8" />
+    <title>Suphx (Baby version)</title>
+    <script src="js/mahjong.min.js"></script>
+    <style>
+        ::-webkit-scrollbar {
+          display: none;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            background-color: black;
+        }
+        #connecting-form {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 20px;
+            width: 300px;
+            margin: auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .host-port-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        label {
+            display: inline-block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0 20px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.8;
+            cursor: not-allowed;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled:hover {
+            background-color: #4CAF50;
+        }
+        #notification-container {
+          position: fixed;
+          bottom: 20px;
+          left: 20px;
+          z-index: 1000;
+        }
+        .notification {
+          background-color: #007bff;
+          color: white;
+          margin-bottom: 10px;
+          padding: 15px;
+          border-radius: 5px;
+          opacity: 0;
+          transition: opacity 0.5s ease;
+        }
+    </style>
+<script>
+    function alert(message) {
+      const container = document.getElementById('notification-container');
+      const notification = document.createElement('div');
+
+      notification.className = 'notification';
+      notification.textContent = message;
+
+      container.appendChild(notification);
+
+      setTimeout(() => {
+        notification.style.opacity = '1';
+      }, 0);
+
+      setTimeout(() => {
+        notification.style.opacity = '0';
+        setTimeout(() => {
+          container.removeChild(notification);
+        }, 500);
+      }, 3000);
+    }
+
+</script>
+</head>
+<body>
+<div id="notification-container"></div>
+<div id="connecting-form" style="display:none;">
+    <div class="host-port-container">
+        <div>
+            <label for="host">服务端地址:</label>
+            <input type="text" id="host" placeholder="输入服务端地址" value="127.0.0.1">
+        </div>
+        <div>
+            <label for="port">端口号:</label>
+            <input type="text" id="port" placeholder="输入端口号" value="8888">
+        </div>
+    </div>
+    <label for="username">用户名:</label>
+    <input type="text" id="username" placeholder="输入用户名">
+    <div id="observer-div">
+        <input type="checkbox" id="observerMode" name="observerMode">
+        <label for="observerMode">观战模式</label>
+    </div>
+    <button id="connectBtn" onclick="this.disabled=true;let that = this;setTimeout(function() {that.disabled = false;}, 5000);connectWebSocket();">连接</button>
+</div>
+
+</body>
