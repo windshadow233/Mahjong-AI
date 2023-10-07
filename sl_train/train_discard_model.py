@@ -22,8 +22,8 @@ def model_test(model, dataset: TenhouDataset):
         features, labels = process_data(data, label_trans=lambda x: x // 4)
         features, labels = features.to(device), labels.to(device)
         output = model(features).softmax(1)
-        # available = features[:, :4].sum(1) != 0
-        available = (features[:, :16] * features[:, 86: 90].repeat_interleave(4, 1)).sum(1) != 0
+        available = features[:, :4].sum(1) != 0
+        # available = (features[:, :16] * features[:, 86: 90].repeat_interleave(4, 1)).sum(1) != 0
         pred = (output * available).argmax(1)
         correct = (pred == labels).sum()
         acc += correct
@@ -47,7 +47,7 @@ len_train = int(0.8 * length)
 train_set.data_files, test_set.data_files = train_set.data_files[:len_train], train_set.data_files[len_train:]
 
 num_layers = args.num_layers
-in_channels = 373
+in_channels = 291
 model = DiscardModel(num_layers=num_layers, in_channels=in_channels)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model.to(device)
