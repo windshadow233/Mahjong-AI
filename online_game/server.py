@@ -118,8 +118,6 @@ class GameEnvironment(object):
         for i in range(AI_count):
             self.clients.append(ClientConnection(f'一姬{i + 1}(简单)', username=f'一姬{i + 1}(简单)'))
 
-        self.__lock = 0
-
     def reward(self, features, i):
         """计算第i轮的reward"""
         features = features.to(self.device)
@@ -156,7 +154,6 @@ class GameEnvironment(object):
             self.reward_features.clear()
         for i in range(self.AI_count):
             self.clients.append(ClientConnection(f'一姬{i + 1}(简单)', username=f'一姬{i + 1}(简单)'))
-        self.__lock = 0
 
     def update(self, key, value, client: ClientConnection = None):
         if client is None:
@@ -168,98 +165,90 @@ class GameEnvironment(object):
             self.send_observers(who, {'event': 'update', 'key': key, 'value': value})
 
     def player_join(self, client_socket, username, observe):
-        while self.__lock:
-            time.sleep(0.01)
-        self.__lock = 1
-        try:
-            if observe:
-                if not self.allow_observe:
-                    response = {'event': 'join', 'status': 0, 'message': '服务端未开启观战'}
-                    self.send_personal(client_socket, response)
-                    return False, None
-                username = username or random.choice([client.username for client in self.clients]) if self.clients else ''
-                if username not in self.clients:
-                    response = {'event': 'join', 'status': -1, 'message': '该玩家不在房间内，已为你随机选择'}
-                    client = ClientConnection(client_socket, str(uuid4()))
-                    idx = random.randint(0, 3)
-                    self.observers[client.username] = (idx, client)
-                    self.observe_info[idx].append(client)
-                    self.send_personal(client_socket, response)
-                    if self.game_start:
-                        self.send_all_game_info(client=client)
-                    else:
-                        response = {'event': 'join', 'status': -1, 'message': '请等待其他玩家加入'}
-                        self.send_personal(client_socket, response)
-                    return True, client
-                idx = self.clients.index(username)
-                response = {'event': 'join', 'status': -1, 'message': '成功加入观战位'}
-                username = str(uuid4())
-                client = ClientConnection(client_socket, username)
-                logging.info(f"username: {username} join")
+        if observe:
+            if not self.allow_observe:
+                response = {'event': 'join', 'status': 0, 'message': '服务端未开启观战'}
+                self.send_personal(client_socket, response)
+                return False, None
+            username = username or random.choice([client.username for client in self.clients]) if self.clients else ''
+            if username not in self.clients:
+                response = {'event': 'join', 'status': -1, 'message': '该玩家不在房间内，已为你随机选择'}
+                client = ClientConnection(client_socket, str(uuid4()))
+                idx = random.randint(0, 3)
                 self.observers[client.username] = (idx, client)
                 self.observe_info[idx].append(client)
                 self.send_personal(client_socket, response)
                 if self.game_start:
                     self.send_all_game_info(client=client)
-                return True, client
-            if len(username) > 8:
-                response = {'event': 'join', 'status': 0, 'message': '用户名长度不能超过8'}
-                self.send_personal(client_socket, response)
-                return False, None
-            if username in self.clients:
-                idx = self.clients.index(username)
-                if self.clients[idx].is_human():
-                    if not self.game_start:
-                        response = {'event': 'join', 'status': 0, 'message': '用户名已被占用'}
-                        self.send_personal(client_socket, response)
-                        return False, None
-                    # else:
-                    #     response = {'event': 'join', 'status': 0, 'message': '您已在房间内'}
-                    #     self.send_personal(client_socket, response)
-                    #     return False, None
-                if self.game_start and self.clients[idx].client_socket == 'Disconnected':
-                    client = self.clients[idx]
-                    client.client_socket = client_socket
-                    client.message_queue = ControlledQueue()
-                    response = {'event': 'join', 'status': 1, 'message': '欢迎重新加入游戏！'}
-                    self.send_personal(client_socket, response)
-                    self.send_all_game_info(client=client)
-                    return True, client
-            if len(self.clients) >= 4:
-                if self.allow_observe:
-                    response = {'event': 'join', 'status': -1, 'message': '房间人数已满，已加入观战位'}
-                    username = str(uuid4())
-                    client = ClientConnection(client_socket, username)
-                    logging.info(f"username: {username} join")
-                    idx = random.randint(0, 3)
-                    self.observers[client.username] = (idx, client)
-                    self.observe_info[idx].append(client)
-                    self.send_personal(client_socket, response)
-                    self.send_all_game_info(client=client)
-                    return True, client
                 else:
-                    response = {'event': 'join', 'status': 0, 'message': '房间人数已满'}
+                    response = {'event': 'join', 'status': -1, 'message': '请等待其他玩家加入'}
+                    self.send_personal(client_socket, response)
+                return True, client
+            idx = self.clients.index(username)
+            response = {'event': 'join', 'status': -1, 'message': '成功加入观战位'}
+            username = str(uuid4())
+            client = ClientConnection(client_socket, username)
+            logging.info(f"username: {username} join")
+            self.observers[client.username] = (idx, client)
+            self.observe_info[idx].append(client)
+            self.send_personal(client_socket, response)
+            if self.game_start:
+                self.send_all_game_info(client=client)
+            return True, client
+        if len(username) > 8:
+            response = {'event': 'join', 'status': 0, 'message': '用户名长度不能超过8'}
+            self.send_personal(client_socket, response)
+            return False, None
+        if username in self.clients:
+            idx = self.clients.index(username)
+            if self.clients[idx].is_human():
+                if not self.game_start:
+                    response = {'event': 'join', 'status': 0, 'message': '用户名已被占用'}
                     self.send_personal(client_socket, response)
                     return False, None
-            if not username:
-                i = 1
-                while 1:
-                    username = f'匿名玩家{i}'
-                    if username not in self.clients:
-                        break
-                    i += 1
-            logging.info(f"username: {username} join")
-            client = ClientConnection(client_socket, username)
-            self.clients.append(client)
-            response = {'event': 'join', 'status': 1, 'message': f'成功加入房间, 您的用户名为「{username}」'}
-            self.send_personal(client, response)
-            if len(self.clients) < 4:
-                self.send_multiply({'event': 'join', 'message': f'当前人数:{len(self.clients)}, 等待其他玩家加入...'})
-            return True, client
-        except Exception:
-            pass
-        finally:
-            self.__lock = 0
+                # else:
+                #     response = {'event': 'join', 'status': 0, 'message': '您已在房间内'}
+                #     self.send_personal(client_socket, response)
+                #     return False, None
+            if self.game_start and self.clients[idx].client_socket == 'Disconnected':
+                client = self.clients[idx]
+                client.client_socket = client_socket
+                client.message_queue = ControlledQueue()
+                response = {'event': 'join', 'status': 1, 'message': '欢迎重新加入游戏！'}
+                self.send_personal(client_socket, response)
+                self.send_all_game_info(client=client)
+                return True, client
+        if len(self.clients) >= 4:
+            if self.allow_observe:
+                response = {'event': 'join', 'status': -1, 'message': '房间人数已满，已加入观战位'}
+                username = str(uuid4())
+                client = ClientConnection(client_socket, username)
+                logging.info(f"username: {username} join")
+                idx = random.randint(0, 3)
+                self.observers[client.username] = (idx, client)
+                self.observe_info[idx].append(client)
+                self.send_personal(client_socket, response)
+                self.send_all_game_info(client=client)
+                return True, client
+            else:
+                response = {'event': 'join', 'status': 0, 'message': '房间人数已满'}
+                self.send_personal(client_socket, response)
+                return False, None
+        if not username:
+            i = 1
+            while 1:
+                username = f'匿名玩家{i}'
+                if username not in self.clients:
+                    break
+                i += 1
+        logging.info(f"username: {username} join")
+        client = ClientConnection(client_socket, username)
+        self.clients.append(client)
+        response = {'event': 'join', 'status': 1, 'message': f'成功加入房间, 您的用户名为「{username}」'}
+        self.send_personal(client, response)
+        if len(self.clients) < 4:
+            self.send_multiply({'event': 'join', 'message': f'当前人数:{len(self.clients)}, 等待其他玩家加入...'})
+        return True, client
 
     def player_disconnect(self, client: ClientConnection):
         logging.info(f"{client.username} leave")
