@@ -44,7 +44,7 @@ class ControlledQueue(Queue):
             super().put(item, block, timeout)
 
 
-class ClientConnection(object):
+class Client(object):
     def __init__(self, client_socket, username):
         if isinstance(client_socket, socket.SocketType):
             client_socket.setblocking(False)
@@ -119,7 +119,7 @@ class GameEnvironment(object):
             self.collected_data = defaultdict(list)
             self.reward_features = defaultdict(list)
         for i in range(AI_count):
-            self.clients.append(ClientConnection(f'一姬{i + 1}(简单)', username=f'一姬{i + 1}(简单)'))
+            self.clients.append(Client(f'一姬{i + 1}(简单)', username=f'一姬{i + 1}(简单)'))
 
     def reward(self, features, i):
         """计算第i轮的reward"""
@@ -156,9 +156,9 @@ class GameEnvironment(object):
             self.collected_data.clear()
             self.reward_features.clear()
         for i in range(self.AI_count):
-            self.clients.append(ClientConnection(f'一姬{i + 1}(简单)', username=f'一姬{i + 1}(简单)'))
+            self.clients.append(Client(f'一姬{i + 1}(简单)', username=f'一姬{i + 1}(简单)'))
 
-    def update(self, key, value, client: ClientConnection = None):
+    def update(self, key, value, client: Client = None):
         if client is None:
             self.send_multiply({'event': 'update', 'key': key, 'value': value})
         else:
@@ -176,7 +176,7 @@ class GameEnvironment(object):
             username = username or random.choice([client.username for client in self.clients]) if self.clients else ''
             if username not in self.clients:
                 response = {'event': 'join', 'status': -1, 'message': '该玩家不在房间内，已为你随机选择'}
-                client = ClientConnection(client_socket, str(uuid4()))
+                client = Client(client_socket, str(uuid4()))
                 idx = random.randint(0, 3)
                 self.observers[client.username] = (idx, client)
                 self.observe_info[idx].append(client)
@@ -190,7 +190,7 @@ class GameEnvironment(object):
             idx = self.clients.index(username)
             response = {'event': 'join', 'status': -1, 'message': '成功加入观战位'}
             username = str(uuid4())
-            client = ClientConnection(client_socket, username)
+            client = Client(client_socket, username)
             logging.info(f"username: {username} join")
             self.observers[client.username] = (idx, client)
             self.observe_info[idx].append(client)
@@ -215,6 +215,7 @@ class GameEnvironment(object):
                 #     return False, None
             if self.game_start and self.clients[idx].client_socket == 'Disconnected':
                 client = self.clients[idx]
+                client_socket.setblocking(False)
                 client.client_socket = client_socket
                 client.message_queue = ControlledQueue()
                 response = {'event': 'join', 'status': 1, 'message': '欢迎重新加入游戏！'}
@@ -225,7 +226,7 @@ class GameEnvironment(object):
             if self.allow_observe:
                 response = {'event': 'join', 'status': -1, 'message': '房间人数已满，已加入观战位'}
                 username = str(uuid4())
-                client = ClientConnection(client_socket, username)
+                client = Client(client_socket, username)
                 logging.info(f"username: {username} join")
                 idx = random.randint(0, 3)
                 self.observers[client.username] = (idx, client)
@@ -245,7 +246,7 @@ class GameEnvironment(object):
                     break
                 i += 1
         logging.info(f"username: {username} join")
-        client = ClientConnection(client_socket, username)
+        client = Client(client_socket, username)
         self.clients.append(client)
         response = {'event': 'join', 'status': 1, 'message': f'成功加入房间, 您的用户名为「{username}」'}
         self.send_personal(client, response)
@@ -253,7 +254,7 @@ class GameEnvironment(object):
             self.send_multiply({'event': 'join', 'message': f'当前人数:{len(self.clients)}, 等待其他玩家加入...'})
         return True, client
 
-    def player_disconnect(self, client: ClientConnection):
+    def player_disconnect(self, client: Client):
         logging.info(f"{client.username} leave")
         if client in self.clients:
             if not self.game_start:
@@ -271,7 +272,7 @@ class GameEnvironment(object):
             who, client = self.observers.pop(client.username)
             self.observe_info[who].remove(client)
 
-    def send_personal(self, client: Union[socket.SocketType, ClientConnection], message):
+    def send_personal(self, client: Union[socket.SocketType, Client], message):
         # logging.debug(yellow(f"Send {message}"))
         message = json.dumps(message) + '\n'
         client.send(message.encode('utf-8'))
@@ -299,7 +300,7 @@ class GameEnvironment(object):
             except:
                 continue
 
-    def fetch_decision_message(self, client: ClientConnection, actions):
+    def fetch_decision_message(self, client: Client, actions):
         if client.is_human():
             message = client.fetch_message()
             logging.debug(yellow(f"fetch message from queue: {message}"))
@@ -309,7 +310,7 @@ class GameEnvironment(object):
         # who = self.clients.index(client)
         # return self.decision_by_ai(who, actions)
 
-    def fetch_discard_message(self, who, client: ClientConnection, tiles, banned):
+    def fetch_discard_message(self, who, client: Client, tiles, banned):
         if client.is_human():
             message = client.fetch_message()
             logging.debug(yellow(f"fetch message from queue: {message}"))
@@ -981,7 +982,7 @@ class GameEnvironment(object):
         mode = tile_id == tsumo  # 是否为摸切。如果banned为空，则tsumo为自摸的牌，否则tsumo为被鸣的牌，则必定不是摸切
         return tile_id, mode
 
-    def send_all_game_info(self, client: ClientConnection = None):
+    def send_all_game_info(self, client: Client = None):
         game_info = self.get_game_info()
         if client is None:
             for i in range(4):
@@ -1189,7 +1190,7 @@ class Server:
             buffer.append(data)
         return b''.join(buffer).decode('utf-8')
 
-    def handle_client(self, client: ClientConnection):
+    def handle_client(self, client: Client):
         while 1:
             try:
                 ready_to_read, _, _ = select.select([client.client_socket], [], [])
@@ -1227,7 +1228,7 @@ class Server:
         self.game.player_disconnect(client)
 
     @run_sync
-    def recv_continue_message(self, client: ClientConnection):
+    def recv_continue_message(self, client: Client):
         message = client.fetch_message()
         if message['event'] == 'ready':
             logging.info(f"{client.username} is ready")
