@@ -12,6 +12,7 @@ import threading
 import time
 from queue import Queue
 from uuid import uuid4
+import select
 
 import torch
 from quart.utils import run_sync
@@ -45,6 +46,8 @@ class ControlledQueue(Queue):
 
 class ClientConnection(object):
     def __init__(self, client_socket, username):
+        if isinstance(client_socket, socket.SocketType):
+            client_socket.setblocking(False)
         self.client_socket = client_socket
         self.username = username
         self.message_queue = ControlledQueue()
@@ -1189,6 +1192,10 @@ class Server:
     def handle_client(self, client: ClientConnection):
         while 1:
             try:
+                ready_to_read, _, _ = select.select([client.client_socket], [], [])
+                if not ready_to_read:
+                    time.sleep(0.1)
+                    continue
                 data = self.recv_socket(client.client_socket)
                 if len(data) == 0:
                     break
@@ -1297,12 +1304,14 @@ class Server:
         while 1:
             try:
                 client_socket, addr = self.server_socket.accept()
-                message = json.loads(self.recv_socket(client_socket))
-                username = message.get('username')
-                observe = message.get('observe')
-                success, client = self.game.player_join(client_socket, username, observe)
-                if success:
-                    threading.Thread(target=self.handle_client, args=(client,), daemon=True).start()
+                ready_to_read, _, _ = select.select([client_socket], [], [])
+                if ready_to_read:
+                    message = json.loads(self.recv_socket(client_socket))
+                    username = message.get('username')
+                    observe = message.get('observe')
+                    success, client = self.game.player_join(client_socket, username, observe)
+                    if success:
+                        threading.Thread(target=self.handle_client, args=(client,), daemon=True).start()
             except:
                 continue
 
