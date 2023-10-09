@@ -282,7 +282,7 @@ class GameEnvironment(object):
         for observer in list(observers):
             try:
                 self.send_personal(observer, message)
-            except:
+            except Exception:
                 continue
 
     def send_multiply(self, message, exception=-1, exception_ob=-1):
@@ -297,7 +297,7 @@ class GameEnvironment(object):
                 continue
             try:
                 client.send(message)
-            except:
+            except Exception:
                 continue
 
     def fetch_decision_message(self, client: Client, actions):
@@ -1001,7 +1001,7 @@ class GameEnvironment(object):
             player_info = self.get_player_info(who)
             try:
                 self.send_personal(client, {'event': 'start', 'game': game_info, 'self': player_info})
-            except:
+            except Exception:
                 pass
 
     async def game_loop(self):
@@ -1313,7 +1313,7 @@ class Server:
                     success, client = self.game.player_join(client_socket, username, observe)
                     if success:
                         threading.Thread(target=self.handle_client, args=(client,), daemon=True).start()
-            except:
+            except Exception:
                 continue
 
     async def run(self):
