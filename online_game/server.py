@@ -153,7 +153,7 @@ class GameEnvironment(object):
         self.current_player = 0
         self.game_start = False
         if self.train:
-            self.collected_data.clear()
+            # self.collected_data.clear()
             self.reward_features.clear()
         for i in range(self.AI_count):
             self.clients.append(Client(f'一姬{i + 1}(简单)', username=f'一姬{i + 1}(简单)'))
@@ -1168,8 +1168,9 @@ class Server:
         self.ROOM_ID_LOCK = 0
         signal.signal(signal.SIGINT, self.close_server)
         signal.signal(signal.SIGTERM, self.close_server)
+        train = train and os.path.isfile('model/saved/reward-model/best.pt')
+        AI_count = 4 if train else AI_count  # 训练模式下必须4个AI
         self.AI_count = AI_count
-        train = train and AI_count == 4 and os.path.isfile('model/saved/reward-model/best.pt')  # 四个AI的情况下方可开启训练模式
         self.train = train
         self.game = GameEnvironment(has_aka=True, AI_count=AI_count, min_score=min_score, fast=fast, allow_observe=allow_observe, train=train)
         logging.info(red(f"Server running at {host}:{port} with {self.AI_count} AI..."))
