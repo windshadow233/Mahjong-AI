@@ -1200,6 +1200,7 @@ class Server:
                     continue
                 data = self.recv_socket(client.client_socket)
                 if len(data) == 0:
+                    client.message_queue.put({'event': 'quit'})
                     break
                 data = json.loads(data)
                 logging.debug(yellow(f"Recv: {data}"))
