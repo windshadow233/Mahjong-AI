@@ -1204,7 +1204,7 @@ class Server:
                 data = json.loads(data)
                 logging.debug(yellow(f"Recv: {data}"))
                 event = data.get('event')
-                if event in ['quit', 'discard', 'decision']:
+                if event in ['quit', 'discard', 'decision', 'ready']:
                     client.message_queue.put(data)
                 if event == 'quit':
                     break
