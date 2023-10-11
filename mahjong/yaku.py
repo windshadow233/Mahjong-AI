@@ -305,7 +305,7 @@ class Yaku(object):
                                 if c == ptn % 9:
                                     num_doko += 1
                             pre.append(ptn % 9)
-                    if num_doko == 3:
+                    if num_doko >= 3:
                         ret |= YakuList.SANSYOKUDOKO
                         han += 2
                 if sangen == 3:
@@ -349,7 +349,7 @@ class Yaku(object):
                                         if c % 9 == ptn % 9 and c != ptn:
                                             num_dojun += 1
                                     pre.append(ptn)
-                            if num_dojun == 3:
+                            if num_dojun >= 3:
                                 ret |= YakuList.SANSYOKUDOJUN
                                 han += 2 - self.kui
                 if info['cyuren']:
