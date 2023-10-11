@@ -54,6 +54,7 @@ $ python sl_train/train_furo_model.py --mode chi --num_layers 50 --epochs 10 --p
 - 国士无双不可抢暗杠
 - 流局包含：荒牌流局、九种九牌、四风连打、四杠散了、四家立直、三家和了
 - 流局满贯不计和牌
+- 大三元、大小四喜不设包牌
 
 1. 将训练好的弃牌模型放置于model/saved/discard-model/best.pt
 2. 将训练好的其他模型放置在类似的位置
