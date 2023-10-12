@@ -378,13 +378,13 @@ class GameEnvironment(object):
                 kan_state = np.concatenate([kan_feature, state], axis=0)
                 action_score_dict[i] = score = self.ai_agent.kan_decision(kan_state)
                 logging.debug(yellow(f'「{self.clients[who].username}」「杠」行为意愿: {score:.3f}'))
-        if not after_tsumo and not self.fast:
-            time.sleep(1 + random.random() * 3)
         if action_score_dict:
             max_score_action, max_score = max(action_score_dict.items(), key=lambda x: x[1])
             if max_score < 0.5:  # 行为意愿均低于阈值，选择pass
+                if not after_tsumo and not self.fast and random.random() < 0.7:
+                    time.sleep(1 + random.random() * 3)
                 return actions[0]
-            if after_tsumo and not self.fast:
+            if not self.fast:
                 time.sleep(1 + random.random() * 3)
             return actions[max_score_action]
         return actions[0]
