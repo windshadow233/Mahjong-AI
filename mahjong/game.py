@@ -1,14 +1,13 @@
 import numpy as np
 from typing import List
+import random
 from .agent import Agent
 from .utils import *
 from .check_agari import is_agari, check_riichi
 
-try:
-    from random import SystemRandom
-    random = SystemRandom()
-except NotImplemented:
-    import random
+
+if hasattr(random, 'SystemRandom'):
+    random = random.SystemRandom()
 
 
 class MahjongGame(object):
