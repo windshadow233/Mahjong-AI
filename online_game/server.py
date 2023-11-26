@@ -265,8 +265,8 @@ class GameEnvironment(object):
                 idx = self.clients.index(client)
                 client.close()
                 self.clients[idx].client_socket = 'Disconnected'
-                if all(not _.is_human() for _ in self.clients):
-                    self.reset()
+                # if all(not _.is_human() for _ in self.clients):
+                #     self.reset()
         elif client.username in self.observers:
             client.close()
             who, client = self.observers.pop(client.username)
@@ -300,15 +300,14 @@ class GameEnvironment(object):
             except Exception:
                 continue
 
-    def fetch_decision_message(self, client: Client, actions):
+    def fetch_decision_message(self, client: Client, actions, after_tsumo):
         if client.is_human():
             message = client.fetch_message()
             logging.debug(yellow(f"fetch message from queue: {message}"))
             if 'action' in message:
                 return message['action']
-        return actions[0]
-        # who = self.clients.index(client)
-        # return self.decision_by_ai(who, actions)
+        who = self.clients.index(client)
+        return self.decision_by_ai(who, actions, after_tsumo)
 
     def fetch_discard_message(self, who, client: Client, tiles, banned):
         if client.is_human():
@@ -318,8 +317,7 @@ class GameEnvironment(object):
                 return message['tile_id']
         if tiles == 'all':
             tiles = list(self.agents[who].tiles)
-        # return self.discard_by_ai(who, tiles, banned)
-        return random.choice([_ for _ in tiles if _ // 4 not in banned])
+        return self.discard_by_ai(who, tiles, banned)
 
     def decision_by_ai(self, who, actions, after_tsumo):
         state = self.game.get_feature(who)
@@ -416,6 +414,8 @@ class GameEnvironment(object):
                 agari_info += f'{han}倍役满！'
             else:
                 agari_info += '役满！'
+            with open("yakuman.txt", 'a', encoding='utf-8') as f:
+                f.write(agari_info + '\n')
         else:
             agari_info += f'{han}番({fu}符)->基本点: {score}'
         logging.info(cyan(agari_info))
@@ -678,7 +678,7 @@ class GameEnvironment(object):
             self.send_observers(who, message)
             if connection.is_human():
                 self.send_personal(connection, message)
-                action = self.fetch_decision_message(connection, actions)
+                action = self.fetch_decision_message(connection, actions, True)
             else:
                 action = self.decision_by_ai(who, actions, True)
             if action['type'] == 'agari':
@@ -819,7 +819,7 @@ class GameEnvironment(object):
             self.send_observers(who, message)
             if connection.is_human():
                 self.send_personal(connection, message)
-                action = self.fetch_decision_message(connection, actions)
+                action = self.fetch_decision_message(connection, actions, False)
             else:
                 action = self.decision_by_ai(who, actions, False)
             if action['type'] == 'agari':
