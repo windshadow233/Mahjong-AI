@@ -414,8 +414,6 @@ class GameEnvironment(object):
                 agari_info += f'{han}倍役满！'
             else:
                 agari_info += '役满！'
-            with open("yakuman.txt", 'a', encoding='utf-8') as f:
-                f.write(agari_info + '\n')
         else:
             agari_info += f'{han}番({fu}符)->基本点: {score}'
         logging.info(cyan(agari_info))
@@ -1348,8 +1346,5 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.INFO)
-    if not os.path.isfile("yakuman.txt"):
-        file = open("yakuman.txt", 'w')
-        file.close()
     server = Server(args.host, args.port, args.AI, args.min_score, args.fast, args.allow_observe, args.train)
     asyncio.run(server.run())
