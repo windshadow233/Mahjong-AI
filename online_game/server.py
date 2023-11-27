@@ -1348,5 +1348,8 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.INFO)
+    if not os.path.isfile("yakuman.txt"):
+        file = open("yakuman.txt", 'w')
+        file.close()
     server = Server(args.host, args.port, args.AI, args.min_score, args.fast, args.allow_observe, args.train)
     asyncio.run(server.run())
