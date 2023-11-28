@@ -1039,6 +1039,8 @@ class GameEnvironment(object):
             else:
                 tile_id, mode = self.select_tile(connection, [tile_id], tsumo=tile_id,
                                                  riichi=True, is_riichi_tile=is_riichi_tile)  # 立直时只能摸切，但还是发一个包过去并阻塞一会
+                if p.riichi_tile == -1:  # 立直时设置横放牌
+                    p.riichi_tile = tile_id
             banned.clear()
             actions = await self.handle_discard(self.current_player, tile_id=tile_id, mode=mode, after_tsumo=after_tsumo, is_riichi_tile=is_riichi_tile)  # pass时, actions=None
             if not self.game_start:
@@ -1065,6 +1067,8 @@ class GameEnvironment(object):
                 self.game.first_round = False
             if actions is not None:  # 其他玩家的操作
                 p.river.pop()
+                if tile_id == p.riichi_tile:  # 立直宣言牌被鸣了，将其移除
+                    p.riichi_tile = -1
                 after_tsumo = False
                 p.nagashimangan = 0  # 清除被鸣牌玩家的流局满贯标识
                 self.game.first_round = False  # 清除第一巡标识
@@ -1115,8 +1119,6 @@ class GameEnvironment(object):
                     after_tsumo = True
                 continue
             else:
-                if p.riichi_status and p.riichi_tile == -1:  # 设置横放牌
-                    p.riichi_tile = tile_id
                 self.current_player = (self.current_player + 1) % 4
                 p = self.agents[self.current_player]
                 connection = self.clients[self.current_player]
