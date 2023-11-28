@@ -1039,8 +1039,8 @@ class GameEnvironment(object):
             else:
                 tile_id, mode = self.select_tile(connection, [tile_id], tsumo=tile_id,
                                                  riichi=True, is_riichi_tile=is_riichi_tile)  # 立直时只能摸切，但还是发一个包过去并阻塞一会
-                if p.riichi_tile == -1:  # 立直时设置横放牌
-                    p.riichi_tile = tile_id
+            if p.declare_riichi and p.riichi_tile == -1:  # 立直时设置横放牌
+                p.riichi_tile = tile_id
             banned.clear()
             actions = await self.handle_discard(self.current_player, tile_id=tile_id, mode=mode, after_tsumo=after_tsumo, is_riichi_tile=is_riichi_tile)  # pass时, actions=None
             if not self.game_start:
