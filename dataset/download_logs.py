@@ -6,6 +6,8 @@ import re
 import gzip
 from multiprocessing import Pool
 
+project_dir = os.path.abspath(Path(os.path.dirname(__file__)).parent)
+log_dir = os.path.join(project_dir, 'logs')
 headers = {
     'Host': 'tenhou.net',
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
@@ -29,8 +31,6 @@ def init_worker():
 
 
 if __name__ == '__main__':
-    project_dir = os.path.abspath(Path(os.path.dirname(__file__)).parent)
-    log_dir = os.path.join(project_dir, 'logs')
     os.makedirs(log_dir, exist_ok=True)
     r = requests.get('https://tenhou.net/sc/raw/list.cgi', headers=headers)
     filenames = re.findall('scc\\d+.html.gz', r.text)
