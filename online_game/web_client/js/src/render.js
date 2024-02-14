@@ -1937,51 +1937,6 @@ class MahjongScene extends Phaser.Scene {
         this.#tsumoSound = [this.sound.add('tsumo_sound0'), this.sound.add('tsumo_sound1')];
         this.#riichiSound = [this.sound.add('riichi_sound0'), this.sound.add('riichi_sound1')];
         this.#wRiichiSound = [this.sound.add('w_riichi_sound0'), this.sound.add('w_riichi_sound1')];
-
-        // this.renderGameInfo(2, 5);
-        // this.renderPlayerInfo(0, 0, 'user1', 25000, 0);
-        // this.renderPlayerInfo(0, 1, 'user2', 25000, 0);
-        // this.renderPlayerInfo(0, 2, 'user3', 25000, 0);
-        // this.renderPlayerInfo(0, 3, 'user4', 25000, 0);
-        //
-        // this.renderLeftTileCount(4);
-        // this.renderRiichiBa(3);
-        // this.renderDora([0, 1]);
-        // this.renderHand([10, 11, 12, 13, 103, 102, 104, 105, 106, 107, 108, 109, 110]);
-        // this.renderDraw(0, 0, 111)
-        // this.renderLeftHand(7);
-        // this.renderOthersOpenHand(0, 3, 7);
-        // this.renderRightHand(10);
-        // this.renderDraw(0, 1, 1, false)
-        // this.renderDraw(0, 3, 1, false)
-        // this.renderOthersOpenHand(0, 1, 11, true);
-        // this.renderOthersOpenHand(0, 3, 8, true);
-        // this.renderOppoHand(7);
-        // this.renderDraw(0, 1)
-        // for (let i of [1,2,10]){
-        //     this.renderDraw(0, 0, i, false);
-        // }
-        // setTimeout(()=>{
-        //     this.renderDraw(0, 3);
-        // },500)
-        // this.toggleBlink(0);
-        // this.renderRiver(0, 0, [0,4,8,12,16,20,24,28,32,0,4,8,12,16,20,24], 24);
-        // this.renderRiver(0, 1, [36,40,44,48,52,56,60,64,68,36,40], 60);
-        // this.renderRiver(0, 2, [0,4,8,12,16,20,24,28,32,0,4,8,12,16,20,24,28], 28);
-        // this.renderRiver(0, 3, [36,40,44,48,52,56,60,64,68,36,40,44,48,52,56,60,64], 64);
-        // this.addRiver(0, 1, 123, 507.27199100112495, 805.6872890888638, false);
-        // this.renderAction(0, 0, '碰');
-        // this.renderFuriten(true);
-        // this.addFuro(0, 3, 1, [113, 114, 112], 112, 1);
-        // this.addKan(0,1,28,115);
-        // this.renderDecisions([
-        //     {'type': 'pass'},
-        //     {'type': 'chi', 'pattern': [0, 4, 8], 'who': 0, 'from_who': 3, 'kui': 8},
-        //     {'type': 'chi', 'pattern': [4, 8, 12], 'who': 0, 'from_who': 3, 'kui': 8},
-        //     {'type': 'pon', 'pattern': [8, 9, 10], 'who': 0, 'from_who': 3, 'kui': 8},
-        //     {'type': 'kan', 'pattern': [1, 2, 8], 'who': 0, 'from_who': 3, 'kui': 8},
-        // ]);
-        // this.renderFinalScore(['一姬', '一姬2', '一姬3', '一姬4'], [[1, 350], [0, 260], [2, 240], [3, 150]]);
     }
     resize(width, height) {
     }
