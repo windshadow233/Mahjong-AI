@@ -85,6 +85,7 @@ class TenhouIterableDataset(IterableDataset):
     def __init__(
         self,
         data_dir,
+        exclude_files,
         mode='discard',
         target_length=1,
         shuffle=True,
@@ -92,6 +93,7 @@ class TenhouIterableDataset(IterableDataset):
     ):
         super().__init__()
         self.data_dir = data_dir
+        self.exclude_files = exclude_files
         self.mode = mode
         self.target_length = target_length
         self.transform = transform
@@ -100,6 +102,8 @@ class TenhouIterableDataset(IterableDataset):
         self.func_name = f'parse_{mode}_data'  # e.g. parse_discard_data
 
     def _sample_generator_for_file(self, data_file):
+        if data_file in self.exclude_files:
+            return
         try:
             full_path = os.path.join(self.data_dir, data_file)
             playback = TenhouData(full_path)
