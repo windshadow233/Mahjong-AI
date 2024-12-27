@@ -1,13 +1,17 @@
 import os
-import torch
-from torch.optim import Adam
 import argparse
-import wandb
-from torch.nn import CrossEntropyLoss
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+
 from model.models import DiscardModel
-from dataset.data import TenhouDataset, process_data
+from dataset.data import TenhouDataset, TenhouIterableDataset, process_data, collate_fn_discard
+
+import torch
+from torch.optim import Adam
+from torch.utils.data import DataLoader
+from torch.nn import CrossEntropyLoss
+import wandb
+import tqdm
 
 
 @torch.no_grad()
@@ -59,13 +63,25 @@ epochs = args.epochs
 os.makedirs(f'output/{mode}-model/checkpoints', exist_ok=True)
 max_acc = 0
 global_step = 0
+# patched dataset and loader
+dataset = TenhouIterableDataset(
+    data_dir='data',
+    exclude_files=set(test_set.data_files),  # exclude testing set
+    mode='discard',
+    target_length=2,
+    shuffle=True
+)
+train_loader = DataLoader(
+    dataset,
+    batch_size=512,
+    num_workers=4,
+    collate_fn=collate_fn_discard,
+    pin_memory=True,
+    prefetch_factor=10
+)
 for epoch in range(epochs):
-    while len(train_set) > 0:
-        data = train_set()
-        if len(data) == 0:
-            break
-        features, labels = process_data(data, label_trans=lambda x: x // 4)
-        features, labels = features.to(device), labels.to(device)
+    for features, labels in tqdm.tqdm(train_loader):
+        features, labels = features.to(device, non_blocking=True), labels.to(device, non_blocking=True)
         output = model(features)
         loss = loss_fcn(output, labels)
         optim.zero_grad()
