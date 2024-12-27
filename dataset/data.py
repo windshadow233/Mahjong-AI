@@ -5,6 +5,7 @@ import random
 import numpy as np
 import torch
 from torch.nn.utils.rnn import pad_sequence
+from torch.utils.data import IterableDataset
 from dataset.tenhou import TenhouData
 
 
@@ -70,8 +71,63 @@ class TenhouDataset(object):
 
     def __call__(self):
         while len(self.data_buffer) < self.batch_size:
-            success = self.update_buffer()
-            if not success:
-                break
+            try:
+                success = self.update_buffer()
+                if not success:  # exhausted
+                    return None
+            except:  # corrupted data skip
+                pass
         data, self.data_buffer = self.data_buffer[:self.batch_size], self.data_buffer[self.batch_size:]
         return data
+
+
+class TenhouIterableDataset(IterableDataset):
+    def __init__(
+        self,
+        data_dir,
+        mode='discard',
+        target_length=1,
+        shuffle=True,
+        transform=None
+    ):
+        super().__init__()
+        self.data_dir = data_dir
+        self.mode = mode
+        self.target_length = target_length
+        self.transform = transform
+        self.data_files = os.listdir(data_dir)
+        self.shuffle = shuffle
+        self.func_name = f'parse_{mode}_data'  # e.g. parse_discard_data
+
+    def _sample_generator_for_file(self, data_file):
+        try:
+            full_path = os.path.join(self.data_dir, data_file)
+            playback = TenhouData(full_path)
+            targets = playback.get_rank()[0 : self.target_length]
+        except Exception as e:  # corrupted file, e.g. `.root` doesn't exist
+            return
+
+        parse_func = getattr(playback, self.func_name, None)
+        for target in targets:
+            try:
+                features, labels = parse_func(target=target)
+                if isinstance(features, list):
+                    pairs = list(zip(features, labels))
+                    # random.shuffle(pairs)  # files shuffled
+                    for (f, lb) in pairs:
+                        if self.transform:
+                            f, lb = self.transform((f, lb))
+                        yield (f, lb)
+                else:
+                    if self.transform:
+                        features, labels = self.transform((features, labels))
+                    yield (features, labels)
+            except:
+                continue
+
+    def __iter__(self):
+        file_list = copy.copy(self.data_files)
+        if self.shuffle:
+            random.shuffle(file_list)
+        for data_file in file_list:
+            yield from self._sample_generator_for_file(data_file)
