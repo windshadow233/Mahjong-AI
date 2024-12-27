@@ -4,7 +4,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 
 from model.models import DiscardModel
-from dataset.data import TenhouDataset, process_data, collate_fn_discard
+from dataset.data import TenhouDataset, TenhouIterableDataset, process_data, collate_fn_discard
 
 import torch
 from torch.optim import Adam
