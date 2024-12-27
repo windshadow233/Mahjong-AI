@@ -8,6 +8,16 @@ from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import IterableDataset
 from dataset.tenhou import TenhouData
 
+def collate_fn_discard(batch):
+    features = []
+    labels = []
+    for (f, lb) in batch:
+        features.append(f)
+        labels.append(lb)
+    features = torch.from_numpy(np.array(features)).float()
+    labels = torch.from_numpy(np.array(labels))
+    labels = labels // 4
+    return features, labels
 
 def process_data(one_batch, label_trans=None):
     features = []
