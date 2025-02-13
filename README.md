@@ -58,7 +58,7 @@ $ python sl_train/train_furo_model.py --mode chi --num_layers 50 --epochs 10 --p
 
 0. 服务端代码写的一坨💩，请大佬们轻喷或提供更好的实现！（欢迎pr）
 1. 将训练好的弃牌模型放置于model/saved/discard-model/best.pt
-2. 将训练好的其他模型放置在类似的位置
+2. 将训练好的其他模型放置在类似的位置（可在[此链接](https://drive.google.com/file/d/1P1gSAOHLW61k-GHSFgKHbFxQINI0NfQm/view)下载我训练好的模型权重用作测试或进一步训练）
 3. 运行服务端程序。使用下面的命令开启带有三个AI的游戏（通过-H参数指定监听的IP地址，默认为0.0.0.0），想在服务端观察到更多游戏细节（如AI做出决策的置信度等），可添加-d参数开启debug模式
 ```shell
 $ python online_game/server.py -A 3 -H 0.0.0.0
